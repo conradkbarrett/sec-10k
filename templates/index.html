@@ -6,172 +6,303 @@
     <title>SEC 10-K Downloader</title>
     <style>
         :root {
-            --primary-color: #007AFF;
+            --primary-color: #0071E3;
+            --primary-hover: #0077ED;
+            --background-color: #FBFBFD;
+            --surface-color: #FFFFFF;
+            --text-primary: #1D1D1F;
+            --text-secondary: #86868B;
+            --border-color: #D2D2D7;
+            --success-color: #28CD41;
             --error-color: #FF3B30;
-            --success-color: #34C759;
-            --background-color: #F2F2F7;
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         body {
             background-color: var(--background-color);
+            color: var(--text-primary);
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Icons', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            line-height: 1.5;
             padding: 20px;
-            max-width: 800px;
-            margin: 0 auto;
         }
 
         .container {
-            background: white;
-            padding: 30px;
+            max-width: 680px;
+            margin: 0 auto;
+            padding: 40px;
+            background: var(--surface-color);
             border-radius: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
         }
 
         h1 {
-            color: #1c1c1e;
-            margin-bottom: 20px;
-            font-weight: 600;
+            font-size: 40px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 40px;
+            background: linear-gradient(135deg, #0071E3 0%, #42A1FF 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 32px;
         }
 
         label {
             display: block;
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+
+        .input-wrapper {
+            position: relative;
             margin-bottom: 8px;
-            color: #1c1c1e;
-            font-weight: 500;
         }
 
         input {
             width: 100%;
-            padding: 12px;
-            border: 1px solid #E5E5EA;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: border-color 0.3s;
+            padding: 16px;
+            font-size: 17px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            background-color: var(--surface-color);
+            transition: all 0.2s ease;
+            appearance: none;
+            -webkit-appearance: none;
         }
 
         input:focus {
             outline: none;
             border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.1);
         }
 
         .ticker-container {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
-            margin-top: 10px;
-            min-height: 30px;
+            margin-top: 12px;
+            min-height: 44px;
+            padding: 4px;
         }
 
         .ticker {
-            background: var(--primary-color);
-            color: white;
-            padding: 6px 12px;
-            border-radius: 15px;
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            font-size: 14px;
+            background: rgba(0, 113, 227, 0.1);
+            color: var(--primary-color);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            animation: tickerAppear 0.3s ease forwards;
+        }
+
+        @keyframes tickerAppear {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
         }
 
         .ticker .remove {
             margin-left: 8px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
-            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .ticker .remove:hover {
+            background: var(--primary-hover);
+            transform: scale(1.1);
         }
 
         .years-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-            gap: 8px;
-            margin-top: 10px;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
         }
 
         .year-checkbox {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
+            position: relative;
         }
 
         .year-checkbox input[type="checkbox"] {
-            width: auto;
-            margin: 0;
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
             cursor: pointer;
         }
 
         .year-checkbox label {
-            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 17px;
+            font-weight: 500;
+            color: var(--text-primary);
+            transition: all 0.2s ease;
             cursor: pointer;
+            margin: 0;
+            user-select: none;
+        }
+
+        .year-checkbox input[type="checkbox"]:checked + label {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+            transform: scale(1.05);
+        }
+
+        .year-checkbox input[type="checkbox"]:focus + label {
+            box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.1);
         }
 
         button {
-            background: var(--primary-color);
+            width: 100%;
+            padding: 16px 32px;
+            font-size: 17px;
+            font-weight: 600;
             color: white;
+            background: var(--primary-color);
             border: none;
-            padding: 12px 24px;
-            border-radius: 10px;
-            font-size: 16px;
+            border-radius: 12px;
             cursor: pointer;
-            transition: opacity 0.3s;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
         button:hover {
-            opacity: 0.9;
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: translateY(0);
         }
 
         button:disabled {
-            opacity: 0.5;
+            opacity: 0.7;
             cursor: not-allowed;
         }
 
-        #status {
-            margin-top: 20px;
-            padding: 10px;
-            border-radius: 10px;
-            display: none;
-        }
-
-        .error {
-            background: #FFE5E5;
-            color: var(--error-color);
-        }
-
-        .success {
-            background: #E5FFE9;
-            color: var(--success-color);
-        }
-
         .loading {
-            display: inline-block;
             width: 20px;
             height: 20px;
-            border: 3px solid rgba(255,255,255,.3);
+            border: 2px solid rgba(255,255,255,0.3);
             border-radius: 50%;
-            border-top-color: #fff;
-            animation: spin 1s ease-in-out infinite;
-            margin-left: 10px;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
         }
 
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
 
-        .warning {
-            background: #FFF3E5;
-            color: #FF9500;
-            padding: 10px;
-            border-radius: 10px;
-            margin-top: 10px;
-            font-size: 14px;
+        #status {
+            margin-top: 20px;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 500;
+            display: none;
+            animation: statusAppear 0.3s ease forwards;
+        }
+
+        @keyframes statusAppear {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .error {
+            background: rgba(255, 59, 48, 0.1);
+            color: var(--error-color);
+        }
+
+        .success {
+            background: rgba(40, 205, 65, 0.1);
+            color: var(--success-color);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 16px;
+            }
+
+            .container {
+                padding: 24px;
+                border-radius: 16px;
+            }
+
+            h1 {
+                font-size: 32px;
+                margin-bottom: 32px;
+            }
+
+            .years-grid {
+                grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+                gap: 8px;
+            }
+
+            .year-checkbox label {
+                padding: 10px;
+                font-size: 15px;
+            }
+
+            input {
+                font-size: 16px;
+                padding: 14px;
+            }
+
+            button {
+                padding: 14px 28px;
+                font-size: 16px;
+            }
+        }
+
+        @media (hover: none) {
+            .ticker .remove {
+                width: 24px;
+                height: 24px;
+            }
         }
     </style>
 </head>
@@ -179,25 +310,31 @@
     <div class="container">
         <h1>SEC 10-K Downloader</h1>
         <div class="form-group">
-            <label for="email">Email (required by SEC):</label>
-            <input type="email" id="email" required>
+            <label for="email">Email</label>
+            <div class="input-wrapper">
+                <input type="email" id="email" placeholder="Required by SEC" required>
+            </div>
         </div>
         <div class="form-group">
-            <label for="tickers">Ticker Symbols (space-separated, max 5):</label>
-            <input type="text" id="tickers" placeholder="e.g., AAPL MSFT GOOGL" required>
+            <label for="tickers">Ticker Symbols</label>
+            <div class="input-wrapper">
+                <input type="text" id="tickers" placeholder="Enter up to 5 symbols (e.g., AAPL, MSFT)" required>
+            </div>
             <div id="ticker-container" class="ticker-container"></div>
-            <div class="warning">Note: Due to server limitations, please download a maximum of 5 tickers at a time.</div>
         </div>
         <div class="form-group">
-            <label>Select Years:</label>
+            <label>Select Years</label>
             <div class="years-grid" id="years-grid"></div>
         </div>
-        <button onclick="downloadReports()">Download Reports <span id="loading" class="loading" style="display: none;"></span></button>
+        <button onclick="downloadReports()">
+            <span>Download Reports</span>
+            <span id="loading" class="loading" style="display: none;"></span>
+        </button>
         <div id="status"></div>
     </div>
 
     <script>
-        // Populate years (current year - 5 to current year)
+        // Populate years
         const currentYear = new Date().getFullYear();
         const yearsGrid = document.getElementById('years-grid');
         for (let year = currentYear; year >= currentYear - 5; year--) {
@@ -211,42 +348,62 @@
         }
 
         // Handle ticker input
-        document.getElementById('tickers').addEventListener('keyup', function(e) {
-            if (e.key === ' ' || e.key === 'Enter') {
+        const tickerInput = document.getElementById('tickers');
+        tickerInput.addEventListener('input', function(e) {
+            const value = this.value;
+            if (value.endsWith(',') || value.endsWith(' ')) {
+                const ticker = value.slice(0, -1).trim().toUpperCase();
+                if (ticker) {
+                    const currentTickers = document.querySelectorAll('.ticker').length;
+                    if (currentTickers >= 5) {
+                        showStatus('Maximum 5 ticker symbols allowed', 'error');
+                    } else {
+                        addTicker(ticker);
+                    }
+                }
+                this.value = '';
+            }
+        });
+
+        tickerInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
                 const ticker = this.value.trim().toUpperCase();
                 if (ticker) {
                     const currentTickers = document.querySelectorAll('.ticker').length;
                     if (currentTickers >= 5) {
-                        showError('Maximum 5 ticker symbols allowed. Please download in batches.');
-                        this.value = '';
-                        return;
+                        showStatus('Maximum 5 ticker symbols allowed', 'error');
+                    } else {
+                        addTicker(ticker);
                     }
-                    addTicker(ticker);
-                    this.value = '';
                 }
+                this.value = '';
             }
         });
 
-        function showError(message) {
+        function showStatus(message, type) {
             const statusDiv = document.getElementById('status');
-            statusDiv.className = 'error';
+            statusDiv.className = type;
             statusDiv.textContent = message;
             statusDiv.style.display = 'block';
-        }
-
-        function showSuccess(message) {
-            const statusDiv = document.getElementById('status');
-            statusDiv.className = 'success';
-            statusDiv.textContent = message;
-            statusDiv.style.display = 'block';
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 3000);
         }
 
         function addTicker(ticker) {
             const container = document.getElementById('ticker-container');
             const tickerDiv = document.createElement('div');
             tickerDiv.className = 'ticker';
-            tickerDiv.innerHTML = `${ticker}<span class="remove" onclick="this.parentElement.remove()">×</span>`;
+            tickerDiv.innerHTML = `${ticker}<span class="remove" onclick="removeTicker(this)">×</span>`;
             container.appendChild(tickerDiv);
+        }
+
+        function removeTicker(element) {
+            const tickerDiv = element.parentElement;
+            tickerDiv.style.opacity = '0';
+            tickerDiv.style.transform = 'scale(0.9)';
+            setTimeout(() => tickerDiv.remove(), 200);
         }
 
         async function downloadReports() {
@@ -266,24 +423,21 @@
             });
 
             if (!email || !tickers.length || !years.length) {
-                showError('Please provide email, ticker symbols, and select at least one year.');
+                showStatus('Please provide email, ticker symbols, and select at least one year', 'error');
                 return;
             }
 
             if (tickers.length > 5) {
-                showError('Maximum 5 ticker symbols allowed. Please download in batches.');
+                showStatus('Maximum 5 ticker symbols allowed', 'error');
                 return;
             }
 
-            const statusDiv = document.getElementById('status');
             const downloadBtn = document.querySelector('button');
             const loadingSpinner = document.getElementById('loading');
             
             downloadBtn.disabled = true;
             loadingSpinner.style.display = 'inline-block';
-            statusDiv.className = '';
-            statusDiv.textContent = 'Downloading... This may take a few minutes.';
-            statusDiv.style.display = 'block';
+            showStatus('Downloading reports...', '');
 
             try {
                 const response = await fetch('/download', {
@@ -309,9 +463,9 @@
                 window.URL.revokeObjectURL(url);
                 document.body.removeChild(a);
                 
-                showSuccess('Download completed successfully!');
+                showStatus('Download completed successfully!', 'success');
             } catch (error) {
-                showError(error.message || 'An error occurred during download.');
+                showStatus(error.message || 'An error occurred during download', 'error');
             } finally {
                 downloadBtn.disabled = false;
                 loadingSpinner.style.display = 'none';
