@@ -34,117 +34,85 @@
         }
 
         .container {
-            max-width: 680px;
+            max-width: 600px;
             margin: 0 auto;
-            padding: 40px;
             background: var(--surface-color);
-            border-radius: 20px;
-            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
         h1 {
-            font-size: 40px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-            margin-bottom: 40px;
-            background: linear-gradient(135deg, #0071E3 0%, #42A1FF 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            text-align: center;
         }
 
         .form-group {
-            margin-bottom: 32px;
+            margin-bottom: 16px;
         }
 
         label {
             display: block;
-            font-size: 17px;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 12px;
+            font-weight: 500;
+            margin-bottom: 4px;
         }
 
         .input-wrapper {
             position: relative;
-            margin-bottom: 8px;
         }
 
-        input {
+        input[type="email"],
+        input[type="text"] {
             width: 100%;
-            padding: 16px;
-            font-size: 17px;
+            padding: 8px 12px;
             border: 1px solid var(--border-color);
-            border-radius: 12px;
-            background-color: var(--surface-color);
-            transition: all 0.2s ease;
-            appearance: none;
-            -webkit-appearance: none;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.2s;
         }
 
-        input:focus {
-            outline: none;
+        input[type="email"]:focus,
+        input[type="text"]:focus {
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.1);
+            outline: none;
         }
 
         .ticker-container {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
-            margin-top: 12px;
-            min-height: 44px;
-            padding: 4px;
+            margin-top: 8px;
         }
 
         .ticker {
+            background: var(--primary-color);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 14px;
             display: inline-flex;
             align-items: center;
-            background: rgba(0, 113, 227, 0.1);
-            color: var(--primary-color);
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 15px;
-            font-weight: 500;
-            transition: all 0.2s ease;
-            animation: tickerAppear 0.3s ease forwards;
-        }
-
-        @keyframes tickerAppear {
-            from {
-                opacity: 0;
-                transform: scale(0.9);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
+            animation: fadeIn 0.2s ease-out;
         }
 
         .ticker .remove {
-            margin-left: 8px;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: var(--primary-color);
-            color: white;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
+            margin-left: 6px;
             cursor: pointer;
-            font-size: 14px;
-            transition: all 0.2s ease;
+            opacity: 0.8;
+            transition: opacity 0.2s;
         }
 
         .ticker .remove:hover {
-            background: var(--primary-hover);
-            transform: scale(1.1);
+            opacity: 1;
         }
 
         .years-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 12px;
-            margin-top: 16px;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 8px;
+            margin-top: 4px;
         }
 
         .year-checkbox {
@@ -154,63 +122,48 @@
         .year-checkbox input[type="checkbox"] {
             position: absolute;
             opacity: 0;
-            width: 100%;
-            height: 100%;
             cursor: pointer;
         }
 
         .year-checkbox label {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 12px;
-            background: var(--surface-color);
+            display: block;
+            padding: 6px 12px;
+            background: var(--background-color);
             border: 1px solid var(--border-color);
-            border-radius: 12px;
-            font-size: 17px;
-            font-weight: 500;
-            color: var(--text-primary);
-            transition: all 0.2s ease;
+            border-radius: 6px;
+            text-align: center;
             cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
             margin: 0;
-            user-select: none;
         }
 
         .year-checkbox input[type="checkbox"]:checked + label {
             background: var(--primary-color);
             color: white;
             border-color: var(--primary-color);
-            transform: scale(1.05);
-        }
-
-        .year-checkbox input[type="checkbox"]:focus + label {
-            box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.1);
         }
 
         button {
             width: 100%;
-            padding: 16px 32px;
-            font-size: 17px;
-            font-weight: 600;
-            color: white;
+            padding: 12px;
             background: var(--primary-color);
+            color: white;
             border: none;
-            border-radius: 12px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: background-color 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
+            margin-top: 16px;
         }
 
         button:hover {
             background: var(--primary-hover);
-            transform: translateY(-1px);
-        }
-
-        button:active {
-            transform: translateY(0);
         }
 
         button:disabled {
@@ -219,89 +172,42 @@
         }
 
         .loading {
-            width: 20px;
-            height: 20px;
-            border: 2px solid rgba(255,255,255,0.3);
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
             border-radius: 50%;
             border-top-color: white;
-            animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+            animation: spin 1s linear infinite;
         }
 
         #status {
-            margin-top: 20px;
-            padding: 16px;
-            border-radius: 12px;
-            font-size: 15px;
-            font-weight: 500;
-            display: none;
-            animation: statusAppear 0.3s ease forwards;
+            margin-top: 12px;
+            text-align: center;
+            font-size: 14px;
         }
 
-        @keyframes statusAppear {
+        #status.error {
+            color: var(--error-color);
+        }
+
+        #status.success {
+            color: var(--success-color);
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes fadeIn {
             from {
                 opacity: 0;
-                transform: translateY(10px);
+                transform: translateY(4px);
             }
             to {
                 opacity: 1;
                 transform: translateY(0);
-            }
-        }
-
-        .error {
-            background: rgba(255, 59, 48, 0.1);
-            color: var(--error-color);
-        }
-
-        .success {
-            background: rgba(40, 205, 65, 0.1);
-            color: var(--success-color);
-        }
-
-        @media (max-width: 768px) {
-            body {
-                padding: 16px;
-            }
-
-            .container {
-                padding: 24px;
-                border-radius: 16px;
-            }
-
-            h1 {
-                font-size: 32px;
-                margin-bottom: 32px;
-            }
-
-            .years-grid {
-                grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-                gap: 8px;
-            }
-
-            .year-checkbox label {
-                padding: 10px;
-                font-size: 15px;
-            }
-
-            input {
-                font-size: 16px;
-                padding: 14px;
-            }
-
-            button {
-                padding: 14px 28px;
-                font-size: 16px;
-            }
-        }
-
-        @media (hover: none) {
-            .ticker .remove {
-                width: 24px;
-                height: 24px;
             }
         }
 
@@ -310,37 +216,37 @@
             height: 4px;
             background: var(--border-color);
             border-radius: 2px;
-            margin: 20px 0;
+            margin: 12px 0;
             overflow: hidden;
         }
+
         .progress {
             width: 0%;
             height: 100%;
             background: var(--primary-color);
             transition: width 0.3s ease;
         }
+
         .progress-status {
             font-size: 14px;
             color: var(--text-secondary);
             text-align: center;
         }
+
         footer {
-            margin-top: 40px;
+            margin-top: 24px;
             text-align: center;
             color: var(--text-secondary);
             font-size: 14px;
         }
+
         footer a {
             color: var(--primary-color);
             text-decoration: none;
         }
+
         footer a:hover {
             text-decoration: underline;
-        }
-        .hint {
-            color: var(--text-secondary);
-            font-size: 12px;
-            margin-top: 4px;
         }
     </style>
 </head>
@@ -359,7 +265,6 @@
                 <input type="text" id="tickers" placeholder="Enter up to 2 symbols (e.g., AAPL, MSFT)" required>
             </div>
             <div id="ticker-container" class="ticker-container"></div>
-            <small class="hint">Maximum 2 ticker symbols allowed</small>
         </div>
         <div class="form-group">
             <label>Select Years (max 2)</label>
