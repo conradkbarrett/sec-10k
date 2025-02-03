@@ -56,14 +56,14 @@ def save_as_html(content, filename):
     with open(filename, 'w', encoding='utf-8') as f:
         f.write(content)
 
-def download_10k(ticker):
+def download_10k(ticker, email='your-email@example.com', base_dir='sec_downloads', years=None):
     """Download the complete 10-K filing for a given ticker"""
     
     # Create downloads directory
-    os.makedirs('sec_downloads', exist_ok=True)
+    os.makedirs(base_dir, exist_ok=True)
     
     headers = {
-        'User-Agent': 'Company Research Tool (your-email@example.com)',
+        'User-Agent': f'Company Research Tool ({email})',
         'Accept-Encoding': 'gzip, deflate'
     }
 
@@ -77,6 +77,11 @@ def download_10k(ticker):
             headers=headers
         )
         
+        if response.status_code != 200:
+            print(f"❌ Failed to get company tickers: {response.status_code}")
+            print(f"Response: {response.text}")
+            return False
+
         companies_data = response.json()
         cik = None
         
@@ -86,20 +91,26 @@ def download_10k(ticker):
                 break
         
         if not cik:
-            print(f"❌ Could not find CIK for {ticker}")
-            return False
+            # For BUD specifically, try alternative ticker
+            if ticker.upper() == 'BUD':
+                print("Trying alternative CIK lookup for BUD (Anheuser-Busch)")
+                cik = '0001668717'.zfill(10)
+            else:
+                print(f"❌ Could not find CIK for {ticker}")
+                return False
             
         print(f"✅ Found CIK: {cik}")
-        time.sleep(1.5)  # SEC rate limit
+        time.sleep(2)  # SEC rate limit
 
         # Step 2: Get company's submissions
         company_url = f"https://data.sec.gov/submissions/CIK{cik}.json"
         headers['Host'] = 'data.sec.gov'
         response = requests.get(company_url, headers=headers)
-        time.sleep(1.5)  # SEC rate limit
+        time.sleep(2)  # SEC rate limit
         
         if response.status_code != 200:
             print(f"❌ Error accessing SEC data: {response.status_code}")
+            print(f"Response: {response.text}")
             return False
             
         filings = response.json()
@@ -107,28 +118,51 @@ def download_10k(ticker):
         
         recent_filings = filings['filings']['recent']
         found = False
+        downloaded_count = 0
         
+        # Look for both '10-K' and '20-F' (foreign company annual report)
         for i, form in enumerate(recent_filings['form']):
-            if form == '10-K':
-                found = True
+            if form in ['10-K', '20-F']:  # Added 20-F for foreign companies
                 filing_date = recent_filings['filingDate'][i]
+                filing_year = int(filing_date.split('-')[0])
+                
+                # Skip if not in requested years
+                if years and filing_year not in years:
+                    continue
+
+                found = True
                 accession_number = recent_filings['accessionNumber'][i]
                 
-                print(f"✅ Found 10-K filed on {filing_date}")
+                print(f"✅ Found {form} filed on {filing_date}")
 
+                # Construct EDGAR URL using different format
                 acc_no_stripped = accession_number.replace('-', '')
-                url = f"https://www.sec.gov/Archives/edgar/data/{int(cik)}/{acc_no_stripped}/{accession_number}.txt"
                 
-                print(f"3. Downloading complete submission file...")
-                response = requests.get(url, headers=headers)
-                time.sleep(1.5)  # SEC rate limit
-                
-                if response.status_code == 200:
-                    company_dir = f'sec_downloads/{ticker}'
+                # Try both possible URL formats
+                urls = [
+                    f"https://www.sec.gov/Archives/edgar/data/{int(cik)}/{acc_no_stripped}/{accession_number}.txt",
+                    f"https://www.sec.gov/Archives/edgar/data/{cik}/{acc_no_stripped}/{accession_number}.txt"
+                ]
+
+                success = False
+                for url in urls:
+                    print(f"Trying URL: {url}")
+                    headers['Host'] = 'www.sec.gov'  # Reset host header for www.sec.gov
+                    response = requests.get(url, headers=headers)
+                    time.sleep(2)  # SEC rate limit
+
+                    if response.status_code == 200:
+                        success = True
+                        break
+                    else:
+                        print(f"Failed with status {response.status_code}, trying alternative URL...")
+
+                if success:
+                    company_dir = os.path.join(base_dir, ticker)
                     os.makedirs(company_dir, exist_ok=True)
 
-                    raw_filename = f'{company_dir}/10K_{filing_date}_full.txt'
-                    html_filename = f'{company_dir}/10K_{filing_date}.html'
+                    raw_filename = os.path.join(company_dir, f'{form}_{filing_date}_full.txt')
+                    html_filename = os.path.join(company_dir, f'{form}_{filing_date}.html')
 
                     ten_k_content, _ = extract_correct_10k(response.text)
 
@@ -137,23 +171,25 @@ def download_10k(ticker):
                             f.write(ten_k_content)
                         save_as_html(ten_k_content, html_filename)
                         print(f"✅ Saved: {raw_filename} & {html_filename}")
+                        downloaded_count += 1
                     else:
-                        print("❌ No valid 10-K found!")
-
-                    return True
+                        print("❌ No valid filing content found!")
                 else:
-                    print(f"❌ Failed to download document: {response.status_code}")
-                    return False
+                    print("❌ Failed to download document with all URL formats")
+                    continue  # Try next filing if available
 
         if not found:
-            print("❌ No 10-K filings found")
+            print("❌ No 10-K or 20-F filings found")
             return False
+            
+        # Return True if we downloaded at least one filing
+        return downloaded_count > 0
             
     except Exception as e:
         print(f"❌ Error processing {ticker}: {str(e)}")
         return False
 
-# Process all companies
-for company in companies:
-    download_10k(company)
-    time.sleep(2)  # Respect SEC rate limits
+# Comment out or remove the loop at the bottom since we'll be calling this from the web interface
+# for company in companies:
+#     download_10k(company)
+#     time.sleep(2)

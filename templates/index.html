@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEC 10-K Downloader</title>
+    <style>
+        :root {
+            --primary-color: #007AFF;
+            --error-color: #FF3B30;
+            --success-color: #34C759;
+            --background-color: #F2F2F7;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        body {
+            background-color: var(--background-color);
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #1c1c1e;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #1c1c1e;
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #E5E5EA;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .email-note {
+            font-size: 12px;
+            color: #8E8E93;
+            margin-top: 5px;
+        }
+
+        .ticker-container, .year-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .ticker, .year {
+            background: var(--primary-color);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+        }
+
+        .ticker .remove, .year .remove {
+            margin-left: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .years-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .year-checkbox {
+            display: none;
+        }
+
+        .year-label {
+            display: block;
+            padding: 8px;
+            text-align: center;
+            background: #E5E5EA;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .year-checkbox:checked + .year-label {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        #status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .error {
+            background: #FFE5E5;
+            color: var(--error-color);
+        }
+
+        .success {
+            background: #E5FFE9;
+            color: var(--success-color);
+        }
+
+        .miami-signature {
+            font-size: 14px;
+            color: #8E8E93;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .miami-signature a {
+            color: var(--primary-color);
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+
+        .miami-signature a:hover {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SEC 10-K Downloader</h1>
+        <div class="form-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" placeholder="Enter your email">
+            <div class="email-note">* Email is required by SEC for data access and is not stored</div>
+        </div>
+
+        <div class="form-group">
+            <label for="tickers">Ticker Symbols</label>
+            <input type="text" id="tickers" placeholder="Enter tickers (space-separated)">
+            <div class="ticker-container" id="ticker-container"></div>
+        </div>
+
+        <div class="form-group">
+            <label>Select Years</label>
+            <div class="years-grid" id="years-grid">
+                <!-- Years will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <button onclick="startDownload()" id="downloadBtn">Download Reports</button>
+        <div id="status"></div>
+    </div>
+
+    <div class="miami-signature">
+        Built in ☀️ Miami by <a href="https://nataliaq.com" target="_blank">Natalia</a> - <a href="https://github.com/conradkbarrett/sec-10k#readme" target="_blank">[read me]</a>
+    </div>
+
+    <script>
+        let tickers = new Set();
+        let selectedYears = new Set();
+
+        // Populate years (current year - 10 to current year)
+        const currentYear = new Date().getFullYear();
+        const yearsGrid = document.getElementById('years-grid');
+        for (let year = currentYear; year >= currentYear - 10; year--) {
+            const input = document.createElement('input');
+            input.type = 'checkbox';
+            input.id = `year-${year}`;
+            input.className = 'year-checkbox';
+            input.value = year;
+            input.addEventListener('change', function() {
+                if (this.checked) {
+                    selectedYears.add(year);
+                } else {
+                    selectedYears.delete(year);
+                }
+            });
+
+            const label = document.createElement('label');
+            label.htmlFor = `year-${year}`;
+            label.className = 'year-label';
+            label.textContent = year;
+
+            yearsGrid.appendChild(input);
+            yearsGrid.appendChild(label);
+        }
+
+        document.getElementById('tickers').addEventListener('keyup', function(e) {
+            if (e.key === ' ' || e.key === 'Enter') {
+                addTicker(this.value);
+            }
+        });
+
+        document.getElementById('tickers').addEventListener('blur', function() {
+            if (this.value.trim()) {
+                addTicker(this.value);
+            }
+        });
+
+        function addTicker(value) {
+            const ticker = value.replace(/[\s,]+/g, '').trim().toUpperCase();
+            if (ticker && tickers.size < 20) {
+                tickers.add(ticker);
+                updateTickerDisplay();
+                document.getElementById('tickers').value = '';
+            }
+        }
+
+        function removeTicker(ticker) {
+            tickers.delete(ticker);
+            updateTickerDisplay();
+        }
+
+        function updateTickerDisplay() {
+            const container = document.getElementById('ticker-container');
+            container.innerHTML = '';
+            tickers.forEach(ticker => {
+                const div = document.createElement('div');
+                div.className = 'ticker';
+                div.innerHTML = `${ticker}<span class="remove" onclick="removeTicker('${ticker}')">×</span>`;
+                container.appendChild(div);
+            });
+        }
+
+        async function startDownload() {
+            const email = document.getElementById('email').value;
+            const statusDiv = document.getElementById('status');
+            const downloadBtn = document.getElementById('downloadBtn');
+
+            if (!email || !tickers.size || !selectedYears.size) {
+                statusDiv.className = 'error';
+                statusDiv.style.display = 'block';
+                statusDiv.textContent = 'Please provide email, ticker symbols, and select at least one year.';
+                return;
+            }
+
+            downloadBtn.disabled = true;
+            statusDiv.className = '';
+            statusDiv.style.display = 'block';
+            statusDiv.textContent = 'Downloading... This may take a few minutes.';
+
+            try {
+                const response = await fetch('/download', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        tickers: Array.from(tickers),
+                        years: Array.from(selectedYears)
+                    })
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'sec_filings.zip';
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+
+                    statusDiv.className = 'success';
+                    statusDiv.textContent = 'Download complete!';
+                } else {
+                    const data = await response.json();
+                    statusDiv.className = 'error';
+                    statusDiv.textContent = data.error || 'An error occurred during download.';
+                }
+            } catch (error) {
+                statusDiv.className = 'error';
+                statusDiv.textContent = 'An error occurred during download.';
+            }
+
+            downloadBtn.disabled = false;
+        }
+    </script>
+</body>
+</html> 
