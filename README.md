@@ -24,6 +24,7 @@ A web interface for downloading SEC 10-K filings, built on top of [Natalia Zarin
 ## Technical Details
 
 Built using:
+- Vercel (https://vercel.com)
 - Flask (Python web framework)
 - Modern HTML/CSS/JavaScript
 - Original SEC downloading logic by Natalia (https://nataliaq.com)
