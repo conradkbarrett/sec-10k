@@ -149,6 +149,30 @@
             background: #E5FFE9;
             color: var(--success-color);
         }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .warning {
+            background: #FFF3E5;
+            color: #FF9500;
+            padding: 10px;
+            border-radius: 10px;
+            margin-top: 10px;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -159,15 +183,16 @@
             <input type="email" id="email" required>
         </div>
         <div class="form-group">
-            <label for="tickers">Ticker Symbols (space-separated, max 20):</label>
+            <label for="tickers">Ticker Symbols (space-separated, max 5):</label>
             <input type="text" id="tickers" placeholder="e.g., AAPL MSFT GOOGL" required>
             <div id="ticker-container" class="ticker-container"></div>
+            <div class="warning">Note: Due to server limitations, please download a maximum of 5 tickers at a time.</div>
         </div>
         <div class="form-group">
             <label>Select Years:</label>
             <div class="years-grid" id="years-grid"></div>
         </div>
-        <button onclick="downloadReports()">Download Reports</button>
+        <button onclick="downloadReports()">Download Reports <span id="loading" class="loading" style="display: none;"></span></button>
         <div id="status"></div>
     </div>
 
@@ -190,11 +215,31 @@
             if (e.key === ' ' || e.key === 'Enter') {
                 const ticker = this.value.trim().toUpperCase();
                 if (ticker) {
+                    const currentTickers = document.querySelectorAll('.ticker').length;
+                    if (currentTickers >= 5) {
+                        showError('Maximum 5 ticker symbols allowed. Please download in batches.');
+                        this.value = '';
+                        return;
+                    }
                     addTicker(ticker);
                     this.value = '';
                 }
             }
         });
+
+        function showError(message) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.className = 'error';
+            statusDiv.textContent = message;
+            statusDiv.style.display = 'block';
+        }
+
+        function showSuccess(message) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.className = 'success';
+            statusDiv.textContent = message;
+            statusDiv.style.display = 'block';
+        }
 
         function addTicker(ticker) {
             const container = document.getElementById('ticker-container');
@@ -207,12 +252,10 @@
         async function downloadReports() {
             const email = document.getElementById('email').value;
             const tickersInput = document.getElementById('tickers').value;
-            // Get all visible ticker tags and the current input
             const visibleTickers = Array.from(document.querySelectorAll('.ticker'))
                 .map(el => el.textContent.replace('×', '').trim());
             const currentTicker = tickersInput.trim();
             
-            // Combine visible tickers with current input if it exists
             const tickers = currentTicker ? 
                 [...visibleTickers, currentTicker] : 
                 visibleTickers;
@@ -223,16 +266,22 @@
             });
 
             if (!email || !tickers.length || !years.length) {
-                const statusDiv = document.getElementById('status');
-                statusDiv.className = 'error';
-                statusDiv.textContent = 'Please provide email, ticker symbols, and select at least one year.';
-                statusDiv.style.display = 'block';
+                showError('Please provide email, ticker symbols, and select at least one year.');
+                return;
+            }
+
+            if (tickers.length > 5) {
+                showError('Maximum 5 ticker symbols allowed. Please download in batches.');
                 return;
             }
 
             const statusDiv = document.getElementById('status');
             const downloadBtn = document.querySelector('button');
+            const loadingSpinner = document.getElementById('loading');
+            
             downloadBtn.disabled = true;
+            loadingSpinner.style.display = 'inline-block';
+            statusDiv.className = '';
             statusDiv.textContent = 'Downloading... This may take a few minutes.';
             statusDiv.style.display = 'block';
 
@@ -245,29 +294,27 @@
                     body: JSON.stringify({ email, tickers, years })
                 });
 
-                if (response.ok) {
-                    const blob = await response.blob();
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'sec_filings.zip';
-                    document.body.appendChild(a);
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                    a.remove();
-                    statusDiv.className = 'success';
-                    statusDiv.textContent = 'Download complete!';
-                } else {
-                    const error = await response.json();
-                    statusDiv.className = 'error';
-                    statusDiv.textContent = error.error || 'An error occurred';
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Download failed');
                 }
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'sec_filings.zip';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                
+                showSuccess('Download completed successfully!');
             } catch (error) {
-                console.error('Download error:', error);
-                statusDiv.className = 'error';
-                statusDiv.textContent = 'An error occurred during download.';
+                showError(error.message || 'An error occurred during download.');
             } finally {
                 downloadBtn.disabled = false;
+                loadingSpinner.style.display = 'none';
             }
         }
     </script>
