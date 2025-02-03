@@ -304,6 +304,44 @@
                 height: 24px;
             }
         }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: var(--border-color);
+            border-radius: 2px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        .progress {
+            width: 0%;
+            height: 100%;
+            background: var(--primary-color);
+            transition: width 0.3s ease;
+        }
+        .progress-status {
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+        footer {
+            margin-top: 40px;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+        footer a:hover {
+            text-decoration: underline;
+        }
+        .hint {
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin-top: 4px;
+        }
     </style>
 </head>
 <body>
@@ -318,12 +356,13 @@
         <div class="form-group">
             <label for="tickers">Ticker Symbols</label>
             <div class="input-wrapper">
-                <input type="text" id="tickers" placeholder="Enter up to 5 symbols (e.g., AAPL, MSFT)" required>
+                <input type="text" id="tickers" placeholder="Enter up to 3 symbols (e.g., AAPL, MSFT)" required>
             </div>
             <div id="ticker-container" class="ticker-container"></div>
+            <small class="hint">Maximum 3 ticker symbols allowed</small>
         </div>
         <div class="form-group">
-            <label>Select Years</label>
+            <label>Select Years (max 2)</label>
             <div class="years-grid" id="years-grid"></div>
         </div>
         <button onclick="downloadReports()">
@@ -331,17 +370,26 @@
             <span id="loading" class="loading" style="display: none;"></span>
         </button>
         <div id="status"></div>
+        <div id="progress-container" style="display: none;">
+            <div class="progress-bar">
+                <div id="progress" class="progress"></div>
+            </div>
+            <div id="progress-status" class="progress-status"></div>
+        </div>
     </div>
+    <footer>
+        Made in 🌞 Miami by <a href="https://nataliaz.notion.site/Natalia-Quintero-b7a646a0b1a2400d8ba059d6fa655e06" target="_blank">Natalia</a> - <a href="https://github.com/conradkbarrett/sec-10k#readme" target="_blank">read me</a>
+    </footer>
 
     <script>
         // Populate years
         const currentYear = new Date().getFullYear();
         const yearsGrid = document.getElementById('years-grid');
-        for (let year = currentYear; year >= currentYear - 5; year--) {
+        for (let year = currentYear; year >= currentYear - 9; year--) {
             const yearDiv = document.createElement('div');
             yearDiv.className = 'year-checkbox';
             yearDiv.innerHTML = `
-                <input type="checkbox" id="year-${year}" value="${year}">
+                <input type="checkbox" id="year-${year}" value="${year}" onchange="limitYearSelection(this)">
                 <label for="year-${year}">${year}</label>
             `;
             yearsGrid.appendChild(yearDiv);
@@ -355,8 +403,8 @@
                 const ticker = value.slice(0, -1).trim().toUpperCase();
                 if (ticker) {
                     const currentTickers = document.querySelectorAll('.ticker').length;
-                    if (currentTickers >= 5) {
-                        showStatus('Maximum 5 ticker symbols allowed', 'error');
+                    if (currentTickers >= 3) {
+                        showStatus('Maximum 3 ticker symbols allowed', 'error');
                     } else {
                         addTicker(ticker);
                     }
@@ -371,8 +419,8 @@
                 const ticker = this.value.trim().toUpperCase();
                 if (ticker) {
                     const currentTickers = document.querySelectorAll('.ticker').length;
-                    if (currentTickers >= 5) {
-                        showStatus('Maximum 5 ticker symbols allowed', 'error');
+                    if (currentTickers >= 3) {
+                        showStatus('Maximum 3 ticker symbols allowed', 'error');
                     } else {
                         addTicker(ticker);
                     }
@@ -406,6 +454,30 @@
             setTimeout(() => tickerDiv.remove(), 200);
         }
 
+        function updateYearsGrid() {
+            const currentYear = new Date().getFullYear();
+            const yearsGrid = document.getElementById('years-grid');
+            yearsGrid.innerHTML = '';
+            
+            for (let year = currentYear; year >= currentYear - 9; year--) {
+                const checkbox = document.createElement('div');
+                checkbox.className = 'year-checkbox';
+                checkbox.innerHTML = `
+                    <input type="checkbox" id="year-${year}" value="${year}" onchange="limitYearSelection(this)">
+                    <label for="year-${year}">${year}</label>
+                `;
+                yearsGrid.appendChild(checkbox);
+            }
+        }
+
+        function limitYearSelection(checkbox) {
+            const checkedBoxes = document.querySelectorAll('input[type="checkbox"]:checked');
+            if (checkedBoxes.length > 2) {
+                checkbox.checked = false;
+                showStatus('Please select a maximum of 2 years', 'error');
+            }
+        }
+
         async function downloadReports() {
             const email = document.getElementById('email').value;
             const tickersInput = document.getElementById('tickers').value;
@@ -427,17 +499,27 @@
                 return;
             }
 
-            if (tickers.length > 5) {
-                showStatus('Maximum 5 ticker symbols allowed', 'error');
+            if (tickers.length > 3) {
+                showStatus('Maximum 3 ticker symbols allowed', 'error');
+                return;
+            }
+
+            if (years.length > 2) {
+                showStatus('Maximum 2 years allowed', 'error');
                 return;
             }
 
             const downloadBtn = document.querySelector('button');
             const loadingSpinner = document.getElementById('loading');
-            
+            const progressContainer = document.getElementById('progress-container');
+            const progressBar = document.getElementById('progress');
+            const progressStatus = document.getElementById('progress-status');
+
             downloadBtn.disabled = true;
             loadingSpinner.style.display = 'inline-block';
-            showStatus('Downloading reports...', '');
+            progressContainer.style.display = 'block';
+            progressBar.style.width = '0%';
+            progressStatus.textContent = 'Starting download...';
 
             try {
                 const response = await fetch('/download', {
@@ -449,28 +531,89 @@
                 });
 
                 if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Download failed');
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'sec_filings.zip';
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                document.body.removeChild(a);
-                
-                showStatus('Download completed successfully!', 'success');
+                const reader = response.body.getReader();
+                const chunks = [];
+                let hasData = false;
+                let isError = false;
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    
+                    if (done) break;
+                    
+                    if (value) {
+                        chunks.push(value);
+                        const text = new TextDecoder().decode(value);
+                        
+                        try {
+                            const lines = text.trim().split('\n');
+                            lines.forEach(line => {
+                                if (line) {
+                                    const data = JSON.parse(line);
+                                    if (data.status === 'processing') {
+                                        progressStatus.textContent = `Processing ${data.ticker}...`;
+                                        progressBar.style.width = `${(tickers.indexOf(data.ticker) + 1) * (100 / tickers.length)}%`;
+                                    } else if (data.status === 'adding') {
+                                        progressStatus.textContent = `Adding ${data.file} to archive...`;
+                                        hasData = true;
+                                    } else if (data.error) {
+                                        showStatus(data.error, 'error');
+                                        isError = true;
+                                    }
+                                }
+                            });
+                        } catch (e) {
+                            // Binary data chunk, ignore
+                            hasData = true;
+                        }
+                    }
+                }
+
+                if (!isError && chunks.length > 0 && hasData) {
+                    progressBar.style.width = '100%';
+                    progressStatus.textContent = 'Preparing download...';
+                    
+                    const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0);
+                    const combinedChunks = new Uint8Array(totalLength);
+                    let position = 0;
+                    
+                    for (const chunk of chunks) {
+                        combinedChunks.set(chunk, position);
+                        position += chunk.length;
+                    }
+
+                    const blob = new Blob([combinedChunks], { type: 'application/zip' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'sec_reports.zip';
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                    showStatus('Download complete!', 'success');
+                } else if (!isError) {
+                    throw new Error('No data received. Please try again.');
+                }
             } catch (error) {
-                showStatus(error.message || 'An error occurred during download', 'error');
+                console.error('Download error:', error);
+                if (error.name === 'AbortError') {
+                    showStatus('Request timed out. Please try downloading fewer reports at once.', 'error');
+                } else {
+                    showStatus(error.message || 'An error occurred during download', 'error');
+                }
             } finally {
                 downloadBtn.disabled = false;
                 loadingSpinner.style.display = 'none';
+                progressContainer.style.display = 'none';
             }
         }
+        
+        // Initialize years grid on page load
+        updateYearsGrid();
     </script>
 </body>
 </html>
