@@ -354,12 +354,12 @@
             </div>
         </div>
         <div class="form-group">
-            <label for="tickers">Ticker Symbols</label>
+            <label for="tickers">Ticker Symbols (max 2)</label>
             <div class="input-wrapper">
-                <input type="text" id="tickers" placeholder="Enter up to 3 symbols (e.g., AAPL, MSFT)" required>
+                <input type="text" id="tickers" placeholder="Enter up to 2 symbols (e.g., AAPL, MSFT)" required>
             </div>
             <div id="ticker-container" class="ticker-container"></div>
-            <small class="hint">Maximum 3 ticker symbols allowed</small>
+            <small class="hint">Maximum 2 ticker symbols allowed</small>
         </div>
         <div class="form-group">
             <label>Select Years (max 2)</label>
@@ -403,8 +403,8 @@
                 const ticker = value.slice(0, -1).trim().toUpperCase();
                 if (ticker) {
                     const currentTickers = document.querySelectorAll('.ticker').length;
-                    if (currentTickers >= 3) {
-                        showStatus('Maximum 3 ticker symbols allowed', 'error');
+                    if (currentTickers >= 2) {
+                        showStatus('Maximum 2 ticker symbols allowed', 'error');
                     } else {
                         addTicker(ticker);
                     }
@@ -419,8 +419,8 @@
                 const ticker = this.value.trim().toUpperCase();
                 if (ticker) {
                     const currentTickers = document.querySelectorAll('.ticker').length;
-                    if (currentTickers >= 3) {
-                        showStatus('Maximum 3 ticker symbols allowed', 'error');
+                    if (currentTickers >= 2) {
+                        showStatus('Maximum 2 ticker symbols allowed', 'error');
                     } else {
                         addTicker(ticker);
                     }
@@ -499,8 +499,8 @@
                 return;
             }
 
-            if (tickers.length > 3) {
-                showStatus('Maximum 3 ticker symbols allowed', 'error');
+            if (tickers.length > 2) {
+                showStatus('Maximum 2 ticker symbols allowed', 'error');
                 return;
             }
 
