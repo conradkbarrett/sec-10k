@@ -6,7 +6,7 @@ A web interface for downloading SEC 10-K filings, built on top of [Natalia Zarin
 
 - 🌐 **Clean, iOS-style Web Interface**: Easy-to-use interface for downloading SEC filings
 - 📅 **Multi-Year Selection**: Choose specific years to download filings from
-- 🏢 **Multiple Companies**: Enter up to 20 ticker symbols at once
+- 🏢 **Multiple Companies**: Enter up to 2 ticker symbols at once
 - 📦 **Automatic ZIP Packaging**: Downloads are automatically organized and zipped
 - 🔄 **Real-time Status Updates**: See download progress and status in the interface
 - 📄 **Support for Foreign Companies**: Downloads both 10-K and 20-F reports
