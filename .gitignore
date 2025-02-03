@@ -13,3 +13,20 @@ sec_downloads/
 
 # Ignore virtual environment
 .venv/
+venv/
+
+# Ignore IDE files
+.vscode/
+.idea/
+
+# Ignore Docker files
+*.log
+.docker/
+
+# Ignore Node.js files
+node_modules/
+package-lock.json
+package.json
+
+# Ignore environment variables
+.env
