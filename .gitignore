@@ -10,3 +10,6 @@ __pycache__/
 
 # Ignore downloaded SEC reports
 sec_downloads/
+
+# Ignore virtual environment
+.venv/
